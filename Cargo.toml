@@ -1,0 +1,46 @@
+[package]
+name = "aoc21"
+version = "0.1.0"
+authors = ["IndianBoy42 <rohanmed123@gmail.com>"]
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+itertools = "0.10.0"
+fxhash = "0.2.1"
+bit-set = "0.5.2"
+rayon = "1.5.0"
+arrayvec = "0.5.2"
+boolinator = "2.4.0"
+num-bigint = "0.4.0"
+num = "0.4.0"
+num-traits = "0.2.14"
+regex = "1.4.2"
+lazy_static = "1.4.0"
+nohash-hasher = "0.2.0"
+nalgebra = "0.25.3"
+smallvec = "1.6.1"
+
+[dependencies.ndarray]
+version = "0.14.0"
+features = ["rayon"]
+
+[dev-dependencies]
+criterion = "0.3.3"
+
+[profile.release]
+panic = "abort"
+codegen-units = 1
+lto = "fat"
+debug = true
+
+# [profile.bench]
+# panic = "abort"
+# codegen-units = 1
+# lto = "thin"
+
+[[bench]]
+name = "alldays"
+harness = false
+
