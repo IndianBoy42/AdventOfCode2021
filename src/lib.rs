@@ -1,5 +1,6 @@
 #![warn(clippy::all)]
 #![warn(clippy::pedantic)]
+#![allow(clippy::missing_panics_doc)]
 #![allow(incomplete_features)]
 #![allow(dead_code)]
 #![allow(clippy::missing_errors_doc)]
