@@ -1,4 +1,4 @@
-use aoc20::*;
+use aoc21::*;
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
