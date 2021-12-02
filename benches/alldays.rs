@@ -16,20 +16,12 @@ pub fn criterion_benchmark(crit: &mut Criterion) {
     c.sample_size(100);
 
     let input1 = utils::read_input("input1.txt").unwrap();
-    c.bench_function("Day 1 Part 1", |b| {
-        b.iter(|| day1::part1(black_box(&input1)))
-    });
-    c.bench_function("Day 1 Part 2", |b| {
-        b.iter(|| day1::part2(black_box(&input1)))
-    });
+    c.bench_function("d1p1", |b| b.iter(|| day1::input(black_box(&input1))));
+    c.bench_function("d1p2", |b| b.iter(|| day1::part2(black_box(&input1))));
 
     let input1 = utils::read_input("input2.txt").unwrap();
-    c.bench_function("Day 2 Part 1", |b| {
-        b.iter(|| day2::part1(black_box(&input1)))
-    });
-    c.bench_function("Day 2 Part 2", |b| {
-        b.iter(|| day2::part2(black_box(&input1)))
-    });
+    c.bench_function("d2p1", |b| b.iter(|| day2::part1(black_box(&input1))));
+    c.bench_function("d2p2", |b| b.iter(|| day2::input(black_box(&input1))));
 }
 
 criterion_group!(benches, criterion_benchmark);
