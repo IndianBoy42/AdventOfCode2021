@@ -1,5 +1,3 @@
-use std::mem::size_of;
-
 use crate::utils::*;
 
 pub fn part1(input: &str) -> usize {
@@ -38,5 +36,4 @@ fn test() {
     let input = read_input("input2.txt").unwrap();
     assert_eq!(part1(&input), 1_690_020);
     assert_eq!(part2(&input), 1_408_487_760);
-    // assert_eq!(part2fft(&input), 246191688);
 }
