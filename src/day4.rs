@@ -22,31 +22,19 @@ fn check_board(board: &[u8]) -> bool {
         return true;
     }
 
-    return false;
+    false
 }
 
-pub fn part1(input: &str) -> usize {
-    let mut blocks = input.split("\n\n");
-    let drawn = blocks
-        .next()
-        .unwrap()
-        .split(',')
-        .map(str::parse)
-        .map(Result::unwrap);
-    let mut boards = blocks
-        .map(|board| {
-            board
-                .split_ascii_whitespace()
-                .map(str::parse)
-                .map(Result::unwrap)
-                .collect_vec()
-        })
-        .collect_vec();
+fn board_score(winner: impl IntoIterator<Item = u8>, called: usize) -> usize {
+    winner.into_iter().map(|x| x as usize).sum::<usize>() * called
+}
 
-    let mut winner = None;
-    let mut called = 0;
+pub fn play_bingo(
+    drawn: impl Iterator<Item = u8>,
+    mut boards: Vec<Vec<u8>>,
+    mut f: impl FnMut(Vec<u8>, u8) -> bool,
+) {
     for number in drawn {
-        called = number;
         let spaces = boards.iter_mut().flat_map(|board| board.iter_mut());
         for space in spaces {
             if *space == number {
@@ -54,58 +42,61 @@ pub fn part1(input: &str) -> usize {
             }
         }
 
-        winner = boards.iter().find(|board| check_board(board));
-        if winner.is_some() {
+        if boards
+            .drain_filter(|board| check_board(board))
+            .any(|board| f(board, number))
+        {
             break;
         }
-    }
-    dbg!(&winner, called);
-
-    winner
-        .expect("Must have winner")
-        .iter()
-        .copied()
-        .map(|x| x as usize)
-        .sum::<usize>()
-        * called as usize
-}
-
-pub fn part2(input: &str) -> usize {
-    let mut blocks = input.split("\n\n");
-    let drawn = blocks
-        .next()
-        .unwrap()
-        .split(',')
-        .map(str::parse)
-        .map(Result::unwrap);
-    let mut boards = blocks
-        .map(|board| {
-            board
-                .split_ascii_whitespace()
-                .map(str::parse)
-                .map(Result::unwrap)
-                .collect_vec()
-        })
-        .collect_vec();
-
-    let mut winners = vec![];
-    let mut called = 0;
-    for number in drawn {
-        called = number;
-        let spaces = boards.iter_mut().flat_map(|board| board.iter_mut());
-        for space in spaces {
-            if *space == number {
-                *space = 0;
-            }
-        }
-
-        winners.extend(boards.drain_filter(|board| check_board(board)));
         if boards.is_empty() {
             break;
         }
     }
-    let winner = winners.last();
-    dbg!(&winner, called);
+}
+
+pub fn drawn(input: &str) -> impl Iterator<Item = u8> + '_ {
+    input.split(',').map(str::parse).map(Result::unwrap)
+}
+pub fn boards<'a>(input: impl Iterator<Item = &'a str>) -> Vec<Vec<u8>> {
+    input
+        .map(|board| {
+            board
+                .split_ascii_whitespace()
+                .map(str::parse)
+                .map(Result::unwrap)
+                .collect_vec()
+        })
+        .collect_vec()
+}
+
+pub fn part1(input: &str) -> usize {
+    let mut blocks = input.split("\n\n");
+    let drawn = drawn(blocks.next().unwrap());
+    let boards = boards(blocks);
+
+    let mut winner = None;
+    let mut called = 0;
+    play_bingo(drawn, boards, |board, number| {
+        winner = Some(board);
+        called = number;
+        true
+    });
+
+    board_score(winner.expect("Must have winner"), called as usize)
+}
+
+pub fn part2(input: &str) -> usize {
+    let mut blocks = input.split("\n\n");
+    let drawn = drawn(blocks.next().unwrap());
+    let boards = boards(blocks);
+
+    let mut winner = None;
+    let mut called = 0;
+    play_bingo(drawn, boards, |board, number| {
+        winner = Some(board);
+        called = number;
+        false
+    });
 
     winner
         .expect("Must have winner")
@@ -120,5 +111,5 @@ pub fn part2(input: &str) -> usize {
 fn test() {
     let input = read_input("input4.txt").unwrap();
     assert_eq!(part1(&input), 60368);
-    assert_eq!(part2(&input), 0);
+    assert_eq!(part2(&input), 17435);
 }
