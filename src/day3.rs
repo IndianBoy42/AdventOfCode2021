@@ -3,7 +3,37 @@ use std::{ops::ControlFlow, str::from_utf8};
 use crate::utils::*;
 
 pub fn part1(input: &str) -> usize {
+    // let lines = input.lines().count();
     let n = input.lines().clone().next().unwrap().len();
+    // let n = input.split_once('\n').unwrap().0.len();
+    let counts = input.lines().fold(vec![0; n], |mut acc, line| {
+        line.bytes().zip(&mut acc).for_each(|(byte, ones)| {
+            if byte == b'0' {
+                *ones -= 1;
+            } else {
+                *ones += 1;
+            }
+        });
+        acc
+    });
+
+    // let (gamma, eps) = counts
+    // .into_iter()
+    // .fold((0, 0), |(gamma, eps), (zeros, ones)| {
+    // let bit = (zeros < ones) as usize;
+    // (gamma << 1 | bit, eps << 1 | (1 - bit))
+    // });
+    let gamma = counts
+        .into_iter()
+        .map(|ones| (ones > 0) as usize)
+        .fold(0, |gamma, bit| gamma << 1 | bit);
+    let eps = !gamma & !(!0 << n);
+
+    eps * gamma
+}
+pub fn part12(input: &str) -> usize {
+    let n = input.lines().clone().next().unwrap().len();
+    // let n = input.split_once('\n').unwrap().0.len();
     let counts = input.lines().fold(vec![(0, 0); n], |mut acc, line| {
         line.bytes()
             .zip(&mut acc)

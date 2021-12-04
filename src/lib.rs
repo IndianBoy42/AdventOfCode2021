@@ -16,6 +16,7 @@
 #![feature(maybe_uninit_uninit_array)]
 #![feature(array_chunks)]
 #![feature(array_windows)]
+#![feature(bool_to_option)]
 #![feature(test)]
 #![feature(drain_filter)]
 #![allow(unused_variables)]

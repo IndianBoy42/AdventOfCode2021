@@ -4,23 +4,25 @@ use crate::utils::*;
 
 fn check_board(board: &[u8]) -> bool {
     if board
-        .chunks_exact(5)
-        .any(|row| row.iter().copied().all(|x| x == 0))
+        .array_chunks()
+        .any(|row: &[_; 5]| row.iter().all(|&x| x == 0))
     {
         return true;
     }
-    if (0..5).any(|i| (i..25).step_by(5).map(|i| board[i]).all(|x| x == 0)) {
+    // if (0..5).any(|i| (i..25).step_by(5).map(|i| board[i]).all(|x| x == 0)) {
+    // if (0..5).any(|i| board[i..].iter().step_by(5).all(|&x| x == 0)) {
+    if (0..5).any(|i| board[i..].iter().step_by(5).all(|&x| x == 0)) {
         return true;
     }
 
-    // Diagonal 1
-    if (0..25).step_by(6).map(|i| board[i]).all(|x| x == 0) {
-        return true;
-    }
-    // Diagonal 2
-    if (4..25).step_by(4).map(|i| board[i]).all(|x| x == 0) {
-        return true;
-    }
+    // // Diagonal 1
+    // if (0..25).step_by(6).map(|i| board[i]).all(|x| x == 0) {
+    //     return true;
+    // }
+    // // Diagonal 2
+    // if (4..25).step_by(4).map(|i| board[i]).all(|x| x == 0) {
+    //     return true;
+    // }
 
     false
 }
@@ -35,20 +37,18 @@ pub fn play_bingo(
     mut f: impl FnMut(Vec<u8>, u8) -> bool,
 ) {
     for number in drawn {
-        let spaces = boards.iter_mut().flat_map(|board| board.iter_mut());
-        for space in spaces {
-            if *space == number {
-                *space = 0;
-            }
-        }
+        let br = boards
+            .drain_filter(|board| {
+                let count = board
+                    .iter_mut()
+                    .filter(|x| **x == number)
+                    .update(|x| **x = 0)
+                    .count();
+                (count > 0) && check_board(board)
+            })
+            .any(|board| f(board, number));
 
-        if boards
-            .drain_filter(|board| check_board(board))
-            .any(|board| f(board, number))
-        {
-            break;
-        }
-        if boards.is_empty() {
+        if br {
             break;
         }
     }

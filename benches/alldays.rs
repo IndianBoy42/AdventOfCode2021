@@ -4,28 +4,41 @@ use aoc21::*;
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
 macro_rules! bench_day {
-    ($n:ident) => {
-        let concat_idents!(input, $n) = utils::read_input("input$n.txt").unwrap();
-        c.bench_function("day$n_p1", |b| b.iter(|| concat_idents!(day, $n)::part1(black_box(&input1))));
-        c.bench_function("day$n_p2", |b| b.iter(|| concat_idents!(day, $n)::part2(black_box(&input1))));
-    };
+    ($c:ident, $n:ident, $i:tt) => {{
+        let fname = concat!("input", $i, ".txt");
+        let input = utils::read_input(fname).unwrap();
+        $c.bench_function(concat!("day", $i, "p1"), |b| {
+            b.iter(|| $n::part1(black_box(&input)))
+        });
+        $c.bench_function(concat!("day", $i, "p2"), |b| {
+            b.iter(|| $n::part2(black_box(&input)))
+        });
+        input
+    }};
+}
+
+macro_rules! bench_all_days {
+    ($n:ident) => { {
+        $n::part1(black_box(&$n));
+        $n::part1(black_box(&$n));
+    } };
+    ($n:ident, $($ns:ident),+) => { {
+        bench_all_days!($n);
+        bench_all_days!($($ns),+);
+    } };
 }
 
 pub fn criterion_benchmark(crit: &mut Criterion) {
     let mut c = crit.benchmark_group("Main Benchmarks");
     c.sample_size(100);
 
-    let input1 = utils::read_input("input1.txt").unwrap();
-    c.bench_function("d1p1", |b| b.iter(|| day1::part2(black_box(&input1))));
-    c.bench_function("d1p2", |b| b.iter(|| day1::part2(black_box(&input1))));
-
-    let input2 = utils::read_input("input2.txt").unwrap();
-    c.bench_function("d2p1", |b| b.iter(|| day2::part1(black_box(&input2))));
-    c.bench_function("d2p2", |b| b.iter(|| day2::part2(black_box(&input2))));
-
-    let input3 = utils::read_input("input3.txt").unwrap();
-    c.bench_function("d3p1", |b| b.iter(|| day3::part1(black_box(&input3))));
-    c.bench_function("d3p2", |b| b.iter(|| day3::part2(black_box(&input3))));
+    let day1 = bench_day!(c, day1, 1);
+    let day2 = bench_day!(c, day2, 2);
+    let day3 = bench_day!(c, day3, 3);
+    let day4 = bench_day!(c, day4, 4);
+    c.bench_function("alldays", |b| {
+        b.iter(|| bench_all_days!(day1, day2, day3, day4))
+    });
 }
 
 criterion_group!(benches, criterion_benchmark);
