@@ -2,16 +2,18 @@ use std::{ops::ControlFlow, str::from_utf8};
 
 use crate::utils::*;
 
+const MARK: u8 = !0;
+
 fn check_board(board: &[u8]) -> bool {
     if board
         .array_chunks()
-        .any(|row: &[_; 5]| row.iter().all(|&x| x == 0))
+        .any(|row: &[_; 5]| row.iter().all(|&x| x == MARK))
     {
         return true;
     }
     // if (0..5).any(|i| (i..25).step_by(5).map(|i| board[i]).all(|x| x == 0)) {
     // if (0..5).any(|i| board[i..].iter().step_by(5).all(|&x| x == 0)) {
-    if (0..5).any(|i| board[i..].iter().step_by(5).all(|&x| x == 0)) {
+    if (0..5).any(|i| board[i..].iter().step_by(5).all(|&x| x == MARK)) {
         return true;
     }
 
@@ -28,7 +30,12 @@ fn check_board(board: &[u8]) -> bool {
 }
 
 fn board_score(winner: impl IntoIterator<Item = u8>, called: usize) -> usize {
-    winner.into_iter().map(|x| x as usize).sum::<usize>() * called
+    winner
+        .into_iter()
+        .filter(|&x| x != MARK)
+        .map(|x| x as usize)
+        .sum::<usize>()
+        * called
 }
 
 pub fn play_bingo(
@@ -42,7 +49,7 @@ pub fn play_bingo(
                 let count = board
                     .iter_mut()
                     .filter(|x| **x == number)
-                    .update(|x| **x = 0)
+                    .update(|x| **x = MARK)
                     .count();
                 (count > 0) && check_board(board)
             })
@@ -98,13 +105,7 @@ pub fn part2(input: &str) -> usize {
         false
     });
 
-    winner
-        .expect("Must have winner")
-        .iter()
-        .copied()
-        .map(|x| x as usize)
-        .sum::<usize>()
-        * called as usize
+    board_score(winner.expect("Must have winner"), called as usize)
 }
 
 #[test]
