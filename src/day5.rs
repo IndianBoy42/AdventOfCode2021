@@ -50,7 +50,7 @@ fn straight_line(
 }
 
 pub fn part1(input: &str) -> usize {
-    let tiles = parse(input).fold(fmap(5000), |mut tiles, line| {
+    let tiles = parse(input).fold(fmap(50000), |mut tiles, line| {
         straight_line(&mut tiles, line);
         tiles
     });
@@ -60,7 +60,7 @@ pub fn part1(input: &str) -> usize {
 
 pub fn part2(input: &str) -> usize {
     let tiles = parse(input).fold(
-        fmap(5000),
+        fmap(50000),
         |mut tiles, line @ ((fromx, fromy), (tox, toy))| {
             straight_line(&mut tiles, line);
             if fromx != tox && fromy != toy {
