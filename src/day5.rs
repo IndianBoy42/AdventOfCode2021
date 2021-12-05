@@ -25,26 +25,24 @@ fn swap_ordered(from: u16, to: u16) -> (u16, u16) {
     (from.min(to), from.max(to))
 }
 
-fn straight_line(
-    mut tiles: FMap<(u16, u16), u8>,
-    line @ ((fromx, fromy), (tox, toy)): ((u16, u16), (u16, u16)),
-) -> FMap<(u16, u16), u8> {
-    if fromx == tox {
-        let (fromy, toy) = swap_ordered(fromy, toy);
-        for y in fromy..=toy {
-            incr(fromx, y, &mut tiles);
-        }
-    } else if fromy == toy {
-        let (fromx, tox) = swap_ordered(fromx, tox);
-        for x in fromx..=tox {
-            incr(x, fromy, &mut tiles);
-        }
-    }
-    tiles
-}
-
 pub fn part1(input: &str) -> usize {
-    let tiles = parse(input).fold(fmap(5000), straight_line);
+    let tiles = parse(input).fold(
+        fmap(5000),
+        |mut tiles, line @ ((fromx, fromy), (tox, toy))| {
+            if fromx == tox {
+                let (fromy, toy) = swap_ordered(fromy, toy);
+                for y in fromy..=toy {
+                    incr(fromx, y, &mut tiles);
+                }
+            } else if fromy == toy {
+                let (fromx, tox) = swap_ordered(fromx, tox);
+                for x in fromx..=tox {
+                    incr(x, fromy, &mut tiles);
+                }
+            }
+            tiles
+        },
+    );
 
     tiles.values().filter(|&&x| x > 1).count()
 }
@@ -66,26 +64,38 @@ pub fn part1(input: &str) -> usize {
 // }
 
 pub fn part2(input: &str) -> usize {
-    let tiles = parse(input).fold(fmap(5000), |tiles, line @ ((fromx, fromy), (tox, toy))| {
-        let mut tiles = straight_line(tiles, line);
-        if fromx != tox && fromy != toy {
-            let line @ ((fromx, fromy), (tox, toy)) = if fromx > tox {
-                ((tox, toy), (fromx, fromy))
-            } else {
-                line
-            };
-            if fromy > toy {
-                for (x, y) in izip!(fromx..=tox, (toy..=fromy).rev()) {
-                    incr(x, y, &mut tiles);
+    let tiles = parse(input).fold(
+        fmap(5000),
+        |mut tiles, line @ ((fromx, fromy), (tox, toy))| {
+            if fromx == tox {
+                let (fromy, toy) = (fromy.min(toy), fromy.max(toy));
+                for y in fromy..=toy {
+                    incr(fromx, y, &mut tiles);
+                }
+            } else if fromy == toy {
+                let (fromx, tox) = (fromx.min(tox), fromx.max(tox));
+                for x in fromx..=tox {
+                    incr(x, fromy, &mut tiles);
                 }
             } else {
-                for (x, y) in izip!(fromx..=tox, fromy..=toy) {
-                    incr(x, y, &mut tiles);
+                let line @ ((fromx, fromy), (tox, toy)) = if fromx > tox {
+                    ((tox, toy), (fromx, fromy))
+                } else {
+                    line
+                };
+                if fromy > toy {
+                    for (x, y) in izip!(fromx..=tox, (toy..=fromy).rev()) {
+                        tiles.entry((x, y)).and_modify(|c| *c += 1).or_insert(1);
+                    }
+                } else {
+                    for (x, y) in izip!(fromx..=tox, fromy..=toy) {
+                        tiles.entry((x, y)).and_modify(|c| *c += 1).or_insert(1);
+                    }
                 }
             }
-        }
-        tiles
-    });
+            tiles
+        },
+    );
 
     tiles.values().filter(|&&x| x > 1).count()
 }
