@@ -1,24 +1,27 @@
 use crate::utils::*;
 
+const NEWBORN: usize = 8;
+const REFRESH: usize = 6;
+
 fn solve(input: &str, days: usize) -> usize {
     let mut fishes = input
         .trim()
         .split(',')
         .map(str::parse::<u8>)
         .map(Result::unwrap)
-        .counts();
+        .fold(ArrayVec::from([0; NEWBORN + 1]), |mut acc, num| {
+            acc[num as usize] += 1;
+            acc
+        });
 
     for i in 0..days {
-        let new = *fishes.get(&0).unwrap_or(&0);
-        fishes = fishes
-            .into_iter()
-            .map(|(k, v)| if k == 0 { (6, v) } else { (k - 1, v) })
-            .into_grouping_map()
-            .sum();
-        fishes.entry(8).and_modify(|x| *x += new).or_insert(new);
+        dbg!(&fishes);
+        let new = fishes.remove(0);
+        fishes[REFRESH] += new;
+        fishes.push(new);
     }
 
-    fishes.values().sum()
+    fishes.into_iter().sum()
 }
 
 pub fn part1(input: &str) -> usize {
