@@ -64,10 +64,14 @@ pub fn part1(input: &str) -> isize {
         // .sorted()
         .collect_vec();
 
-    if false {
-        let median = median(&pos).unwrap();
-        // pos.sort();
-        // let median = pos[pos.len() / 2];
+    if true {
+        // This has O(n) complexity but is slower
+        // let median = median(&pos).unwrap();
+
+        let mut pos = pos;
+        pos.sort_unstable();
+        let median = pos[pos.len() / 2];
+
         pos.iter().map(|x| (x - median).abs()).sum::<isize>() as isize
     } else {
         let test = |tar: isize| pos.iter().map(|x| (x - tar).abs()).sum::<isize>() as isize;
