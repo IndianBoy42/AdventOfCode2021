@@ -11,7 +11,7 @@ itertools = "0.10.0"
 fxhash = "0.2.1"
 bit-set = "0.5.2"
 rayon = "1.5.0"
-arrayvec = "0.5.2"
+arrayvec = "0.7.2"
 boolinator = "2.4.0"
 num-bigint = "0.4.0"
 num = "0.4.0"
@@ -21,6 +21,8 @@ lazy_static = "1.4.0"
 nohash-hasher = "0.2.0"
 nalgebra = "0.25.3"
 smallvec = "1.6.1"
+lexical = "6.0.1"
+num-complex = "0.4.0"
 
 [dependencies.ndarray]
 version = "0.14.0"
@@ -28,10 +30,11 @@ features = ["rayon"]
 
 [dev-dependencies]
 criterion = "0.3.3"
+iai = "0.1.1"
 
 [profile.release]
 panic = "abort"
-codegen-units = 1
+# codegen-units = 1
 lto = "fat"
 debug = true
 
