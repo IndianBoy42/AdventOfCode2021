@@ -1,60 +1,5 @@
 use crate::utils::*;
 
-fn median<T>(data: &[T]) -> Option<T>
-where
-    T: std::ops::Add<Output = T> + std::cmp::PartialOrd + Copy,
-{
-    use std::cmp::Ordering;
-    fn partition<T>(data: &[T]) -> Option<(Vec<T>, T, Vec<T>)>
-    where
-        T: std::cmp::PartialOrd + Copy,
-    {
-        (!data.is_empty()).then(|| {
-            let (pivot_slice, tail) = data.split_at(1);
-            let pivot = pivot_slice[0];
-            let (left, right) = tail.iter().fold((vec![], vec![]), |mut splits, next| {
-                {
-                    let (ref mut left, ref mut right) = &mut splits;
-                    if next < &pivot {
-                        left.push(*next);
-                    } else {
-                        right.push(*next);
-                    }
-                }
-                splits
-            });
-
-            (left, pivot, right)
-        })
-    }
-    fn select<T>(data: &[T], k: usize) -> Option<T>
-    where
-        T: std::cmp::PartialOrd + Copy,
-    {
-        let part = partition(data);
-
-        match part {
-            None => None,
-            Some((left, pivot, right)) => {
-                let pivot_idx = left.len();
-
-                match pivot_idx.cmp(&k) {
-                    Ordering::Equal => Some(pivot),
-                    Ordering::Greater => select(&left, k),
-                    Ordering::Less => select(&right, k - (pivot_idx + 1)),
-                }
-            }
-        }
-    }
-
-    let size = data.len();
-
-    match size {
-        even if even % 2 == 0 => select(data, even / 2),
-        odd => select(data, odd / 2),
-    }
-}
-
 pub fn part1(input: &str) -> isize {
     let pos = input
         .trim()
@@ -65,12 +10,15 @@ pub fn part1(input: &str) -> isize {
         .collect_vec();
 
     if true {
-        // This has O(n) complexity but is slower
-        // let median = median(&pos).unwrap();
-
         let mut pos = pos;
-        pos.sort_unstable();
-        let median = pos[pos.len() / 2];
+        let med = pos.len() / 2;
+        let median = if false {
+            pos.sort_unstable();
+            pos[med]
+        } else {
+            // O(n) and fast
+            *pos.select_nth_unstable(med).1
+        };
 
         pos.iter().map(|x| (x - median).abs()).sum::<isize>() as isize
     } else {
@@ -88,6 +36,7 @@ pub fn part2(input: &str) -> isize {
         // .sorted()
         .collect_vec();
 
+    // The minimum within +/- 1 of the mean
     let sum: isize = pos.iter().copied().sum();
     let len = pos.len() as isize;
     let hi = (sum + len - 1) / len;
@@ -100,6 +49,7 @@ pub fn part2(input: &str) -> isize {
             .sum::<isize>() as isize
     };
 
+    // Technically requires checking 3 values if the mean is an exact integer
     [lo, hi].into_iter().map(test).min().unwrap()
 }
 
