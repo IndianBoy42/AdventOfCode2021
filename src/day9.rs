@@ -5,8 +5,8 @@ use crate::{
 };
 
 type MapGrid2D<T> = FMap<(u8, u8), T>;
-// type Grid = Grid2D<u8>;
-type Grid = MapGrid2D<u8>;
+type Grid = Grid2D<u8>;
+// type Grid = MapGrid2D<u8>;
 
 fn parse(input: &str) -> Grid {
     input
@@ -23,7 +23,7 @@ fn parse(input: &str) -> Grid {
 
 fn minima(map: &Grid) -> impl Iterator<Item = ((usize, usize), u8)> + '_ {
     map.iter()
-        .map(|(&(r, c), &num)| ((r, c), num))
+        .map(|((r, c), &num)| ((r, c), num))
         .filter(|&((r, c), num)| {
             let a = map.get(&(r + 1, c)).copied().unwrap_or(10);
             let b = r
@@ -40,7 +40,6 @@ fn minima(map: &Grid) -> impl Iterator<Item = ((usize, usize), u8)> + '_ {
 
             (num < a) && (num < b) && (num < c) && (num < d)
         })
-        .map(|((r, c), num)| ((r as _, c as _), num))
 }
 
 pub fn part1(input: &str) -> usize {
@@ -59,7 +58,10 @@ pub fn part2(input: &str) -> usize {
         .map(|((row, col), _)| {
             BFSearcher::<(u8, u8), FSet<(u8, u8)>, _>::new(
                 (row as u8, col as u8),
-                |p: &(u8, u8)| adj_neighbours(*p).filter(|p| map.get(p).map_or(false, |&h| h != 9)),
+                |p: &(u8, u8)| {
+                    adj_neighbours(*p)
+                        .filter(|&(r, c)| map.get(&(r as _, c as _)).map_or(false, |&h| h != 9))
+                },
             )
             .check()
             .count()
