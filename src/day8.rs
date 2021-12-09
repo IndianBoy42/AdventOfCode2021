@@ -126,6 +126,7 @@ pub fn part2(input: &str) -> usize {
     let parse = |x: &str| {
         x.trim()
             .split(' ')
+            // TODO: represent sequence as bitset to remove the need for sorting
             .map(|x| x.bytes().collect::<ArrayVec<_, 8>>())
             .update(|x| x.sort_unstable())
             .collect::<ArrayVec<_, 10>>()
@@ -148,11 +149,16 @@ pub fn part2(input: &str) -> usize {
                 .iter()
                 .map(|segment| (segment, segment.iter().map(|c| map[c] as u8).sum()))
                 .map(|(seg, score)| (seg, score_to_digit[&score]))
-                .collect::<FMap<_, _>>();
+                .collect::<ArrayVec<_, 10>>();
 
             right
                 .iter()
-                .map(|code| scr[code] as usize)
+                .map(|code| {
+                    *seq_to_digit
+                        .iter()
+                        .find_map(|(seq, digit)| (seq == &code).then_some(digit))
+                        .unwrap() as usize
+                })
                 .fold(0, |acc, x| acc * 10 + x)
         })
         .sum::<usize>()
