@@ -34,6 +34,13 @@ impl<T: Default + std::cmp::PartialEq> Grid2D<T> {
 }
 
 impl<T> Grid2D<T> {
+    pub fn len(&self) -> usize {
+        self.arr.len()
+    }
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+
     pub fn values(&self) -> impl Iterator<Item = &T> {
         self.arr.iter()
     }

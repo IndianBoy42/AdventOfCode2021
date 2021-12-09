@@ -155,9 +155,30 @@ where
         Self::with_capacity_all(cap, once(init), neighbours)
     }
 
-    pub fn push(&mut self, e: T) {
+    pub fn new_empty(neighbours: NeighboursFn) -> Self {
+        Self::with_capacity_empty(1, neighbours)
+    }
+    pub fn new_all_empty(neighbours: NeighboursFn) -> Self {
+        Self::with_capacity_all_empty(1, neighbours)
+    }
+    pub fn with_capacity_all_empty(cap: usize, neighbours: NeighboursFn) -> Self {
+        Searcher {
+            visited: VisitSet::newset_cap(cap),
+            queue: Queue::newq_cap(cap),
+            neighbours,
+            _dummy_t: PhantomData,
+        }
+    }
+    pub fn with_capacity_empty(cap: usize, neighbours: NeighboursFn) -> Self {
+        Self::with_capacity_all_empty(cap, neighbours)
+    }
+
+    pub fn push(&mut self, e: T) -> bool {
         if self.visited.mark(e.clone()) {
             self.queue.pushq(e);
+            true
+        } else {
+            false
         }
     }
 

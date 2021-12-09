@@ -1,4 +1,4 @@
-use crate::utils::*;
+use crate::{u32set::U32Set, utils::*};
 
 const SEGMENTS: &[&[u8]] = &[
     &[b'a', b'b', b'c', b'e', b'f', b'g'],       // 0
@@ -31,36 +31,6 @@ pub fn part1(input: &str) -> usize {
         })
         .sum()
 }
-
-// pub fn part2_argh(input: &str) -> usize {
-//     let normalize = |x: &str| {
-//         let mut x = x.as_bytes().to_vec();
-//         // let mut x = x.chars().collect_vec();
-//         x.sort_unstable();
-//         x
-//     };
-//     let parse = |x: &str| x.trim().split(' ').map(normalize).collect_vec();
-//     let lines = input
-//         .lines()
-//         // .map(|x| dbg!(x))
-//         .map(|line| line.split_once('|').unwrap())
-//         .map(|(left, right)| (parse(left), parse(right)));
-//
-//     for (left, right) in lines {
-//         let mut mapping = b"0000000";
-//
-//         let one = left.iter().find(|x| x.len() == SEGMENTS[1].len()).unwrap();
-//         let svn = left.iter().find(|x| x.len() == SEGMENTS[7].len()).unwrap();
-//         let aaa = *svn
-//             .iter()
-//             .find(|&seg| !one.iter().any(|seg2| seg2 == seg))
-//             .unwrap();
-//
-//         mapping[(aaa - b'a') as usize] = b'a';
-//     }
-//
-//     unimplemented!()
-// }
 
 pub fn part2_(input: &str) -> usize {
     let parse = |x: &str| {
@@ -122,6 +92,45 @@ pub fn part2_(input: &str) -> usize {
         .sum::<usize>()
 }
 
+pub fn part2_bitset2(input: &str) -> usize {
+    let parse = |x: &str| {
+        x.trim()
+            .split(' ')
+            .map(|x| x.bytes().map(|x| x - b'a').collect::<U32Set>())
+            .collect::<ArrayVec<_, 10>>()
+    };
+
+    let refmap = SEGMENTS.iter().flat_map(|a| a.iter()).copied().counts();
+    let score_to_digit = SEGMENTS
+        .iter()
+        .enumerate()
+        .map(|(i, segment)| (segment.iter().map(|c| refmap[c] as u8).sum(), i as _))
+        .collect::<FMap<u8, u8>>();
+    // .update(|(left, _)| left.retain(|seq| UNIQUE_LENS.iter().all(|&l| seq.len() != l)));
+    input
+        .lines()
+        .map(|line| line.split_once('|').unwrap())
+        .map(|(left, right)| (parse(left), parse(right)))
+        .map(|(left, right)| {
+            let map = left.iter().flat_map(|a| a.ones()).counts();
+            let seq_to_digit = left
+                .iter()
+                .map(|segment| (segment, segment.ones().map(|c| map[&c] as u8).sum()))
+                .map(|(seg, score)| (seg, score_to_digit[&score]))
+                .collect::<ArrayVec<_, 10>>();
+
+            right
+                .iter()
+                .map(|code| {
+                    *seq_to_digit
+                        .iter()
+                        .find_map(|(seq, digit)| (seq == &code).then_some(digit))
+                        .unwrap() as usize
+                })
+                .fold(0, |acc, x| acc * 10 + x)
+        })
+        .sum::<usize>()
+}
 pub fn part2(input: &str) -> usize {
     let parse = |x: &str| {
         x.trim()
@@ -170,4 +179,65 @@ fn test() {
     // let input = read_input("test.txt").unwrap();
     assert_eq!(part2(&input), 1_010_472);
     assert_eq!(part1(&input), 330);
+}
+
+pub fn part2_bitset(input: &str) -> usize {
+    let parse = |x: &str| {
+        x.trim()
+            .split(' ')
+            .map(|x| x.bytes().map(|x| x - b'a').collect::<U32Set>())
+            .collect::<ArrayVec<_, 10>>()
+    };
+    // .update(|(left, _)| left.retain(|seq| UNIQUE_LENS.iter().all(|&l| seq.len() != l)));
+
+    let segments = SEGMENTS
+        .iter()
+        .map(|&seq| seq.iter().map(|x| x - b'a').collect::<U32Set>())
+        .collect::<ArrayVec<_, 10>>();
+
+    input
+        // .par_lines()
+        .lines()
+        // .map(|x| dbg!(x))
+        .map(|line| line.split_once('|').unwrap())
+        .map(|(left, right)| (parse(left), parse(right)))
+        .map(|(left, right)| {
+            b"abcdefg"
+                .iter()
+                .permutations(7)
+                .find(|order| {
+                    left.iter().all(|seq| {
+                        let code = seq
+                            .ones()
+                            .map(|i| *order[i as usize] - b'a')
+                            .collect::<U32Set>();
+                        segments.iter().any(|&m| m == code)
+                        //.map(|x| dbg!(x))
+                    })
+                })
+                .map(|order| {
+                    right
+                        .iter()
+                        .map(|seq| {
+                            let code = seq
+                                .ones()
+                                .map(|i| *order[i as usize] - b'a')
+                                .collect::<U32Set>();
+                            segments
+                                .iter()
+                                .position(|&m| m == code)
+                                // .map(|c| (b'0' + c ) )
+                                .expect("Must be valid")
+                        })
+                        .collect::<ArrayVec<_, 4>>()
+                })
+                .expect("Must have a valid order")
+        })
+        .map(|digits| {
+            digits.into_iter().fold(0, |acc, x| acc * 10 + x)
+            //     .collect::<String>()
+            //     .parse::<usize>()
+            //     .unwrap()
+        })
+        .sum::<usize>()
 }
