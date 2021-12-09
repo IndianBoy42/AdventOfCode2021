@@ -147,7 +147,7 @@ where
             _dummy_t: PhantomData,
         };
         for e in init {
-            slf.push(e)
+            slf.push(e);
         }
         slf
     }
@@ -159,6 +159,15 @@ where
         if self.visited.mark(e.clone()) {
             self.queue.pushq(e);
         }
+    }
+
+    /// Just to get a better error message for the type of NeighboursFn
+    pub fn check<SearchIter>(self) -> Self
+    where
+        NeighboursFn: FnMut(&T) -> SearchIter,
+        SearchIter: IntoIterator<Item = T>,
+    {
+        self
     }
 }
 

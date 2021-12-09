@@ -1,9 +1,9 @@
-use std::convert::{TryFrom, TryInto};
-use std::iter::FromIterator;
-use std::ops::Deref;
+use std::convert::TryInto;
+use std::iter::{FromIterator, TrustedLen};
 
-use itertools::izip;
+use itertools::{izip, Itertools};
 use ndarray::{azip, Array2, ArrayBase};
+use num::Zero;
 use rayon::collections::binary_heap::IntoIter;
 use rayon::iter::FromParallelIterator;
 
@@ -14,7 +14,7 @@ pub struct Grid2D<T> {
     pub arr: Array2<T>,
 }
 
-impl<T: num_traits::Zero + Clone> Grid2D<T> {
+impl<T: num_traits::Zero + Copy> Grid2D<T> {
     pub fn from_iter_w_shape<I: IntoIterator<Item = T>>(shape: (usize, usize), iter: I) -> Self {
         let mut arr = Array2::zeros(shape);
         izip!(arr.iter_mut(), iter.into_iter()).for_each(|(out, elem)| {
@@ -28,10 +28,8 @@ impl<T: num_traits::Zero + Clone> Grid2D<T> {
 }
 
 impl<T: Default + std::cmp::PartialEq> Grid2D<T> {
-    pub fn contains_key(&self, &(x, y): &(i32, i32)) -> bool {
-        self.arr
-            .get((x as usize, y as usize))
-            .map_or(false, |x| x != &T::default())
+    pub fn contains_key(&self, &(x, y): &(usize, usize)) -> bool {
+        self.arr.get((x, y)).map_or(false, |x| x != &T::default())
     }
 }
 
@@ -40,12 +38,12 @@ impl<T> Grid2D<T> {
         self.arr.iter()
     }
 
-    pub fn get(&self, &(x, y): &(i32, i32)) -> Option<&T> {
-        self.arr.get((x as usize, y as usize))
+    pub fn get(&self, &(x, y): &(usize, usize)) -> Option<&T> {
+        self.arr.get((x, y))
     }
 
-    pub fn get_mut(&mut self, &(x, y): &(i32, i32)) -> Option<&mut T> {
-        self.arr.get_mut((x as usize, y as usize))
+    pub fn get_mut(&mut self, &(x, y): &(usize, usize)) -> Option<&mut T> {
+        self.arr.get_mut((x, y))
     }
 
     pub fn iter<I>(&self) -> impl Iterator<Item = ((I, I), &T)>
@@ -58,25 +56,46 @@ impl<T> Grid2D<T> {
             .map(|((x, y), z)| ((x.try_into().unwrap(), y.try_into().unwrap()), z))
     }
 }
+pub fn adj_neighbours((x, y): (usize, usize)) -> impl Iterator<Item = (usize, usize)> {
+    let a = x.checked_add(1).map(|x| (x, y));
+    let b = x.checked_sub(1).map(|x| (x, y));
+    let d = y.checked_sub(1).map(|y| (x, y));
+    let c = y.checked_add(1).map(|y| (x, y));
 
-impl<T> FromIterator<T> for Grid2D<T> {
-    fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Self {
-        todo!()
+    [a, b, c, d].into_iter().flatten()
+}
+
+// impl<Inner, T> FromIterator<Inner> for Grid2D<T>
+impl<T> Grid2D<T> {
+    fn from_iter<Inner, I>(iter: I) -> Self
+    where
+        Inner: IntoIterator<Item = T> + ExactSizeIterator + TrustedLen,
+        I: IntoIterator<Item = Inner>,
+        T: Zero + Copy,
+    {
+        let mut iter = iter.into_iter().peekable();
+        let first = iter.peek().unwrap();
+        let ymax = first.size_hint().0;
+        let iter = iter.collect_vec();
+        let xmax = iter.len();
+
+        Self::from_iter_w_shape((xmax, ymax), iter.into_iter().flatten())
     }
 }
 
-impl<T: Clone + num_traits::Zero> FromIterator<((usize, usize), T)> for Grid2D<T> {
+impl<T: Copy + num_traits::Zero> FromIterator<((usize, usize), T)> for Grid2D<T> {
     fn from_iter<I: IntoIterator<Item = ((usize, usize), T)>>(iter: I) -> Self {
         let map = iter.into_iter().collect::<Vec<_>>();
         let xmax = map.iter().map(|&((x, y), _)| x).max().unwrap() + 1;
         let ymax = map.iter().map(|&((x, y), _)| y).max().unwrap() + 1;
 
-        let mut arr = Array2::zeros((xmax, ymax));
-        for ((x, y), z) in map {
-            arr[(x, y)] = z;
-        }
+        // let mut arr = Array2::zeros((xmax, ymax));
+        // for ((x, y), z) in map {
+        //     arr[(x, y)] = z;
+        // }
+        // Grid2D { arr }
 
-        Grid2D { arr }
+        Self::from_iter_w_shape((xmax, ymax), map.into_iter().map(|(_, z)| z))
     }
 }
 

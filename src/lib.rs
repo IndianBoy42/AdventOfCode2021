@@ -20,8 +20,14 @@
 #![feature(test)]
 #![feature(drain_filter)]
 #![feature(hash_drain_filter)]
+#![feature(trusted_len)]
 // #![allow(unused_variables)]
 // #![allow(unused_imports)]
+
+pub mod grid;
+pub mod searcher;
+pub mod u32set;
+pub mod utils;
 
 pub mod day1;
 pub mod day2;
@@ -31,8 +37,4 @@ pub mod day5;
 pub mod day6;
 pub mod day7;
 pub mod day8;
-
-pub mod grid;
-pub mod searcher;
-pub mod u32set;
-pub mod utils;
+pub mod day9;
