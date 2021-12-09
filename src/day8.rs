@@ -62,7 +62,7 @@ pub fn part1(input: &str) -> usize {
 //     unimplemented!()
 // }
 
-pub fn part2(input: &str) -> usize {
+pub fn part2_(input: &str) -> usize {
     let parse = |x: &str| {
         x.trim()
             .split(' ')
@@ -118,6 +118,42 @@ pub fn part2(input: &str) -> usize {
             //     .collect::<String>()
             //     .parse::<usize>()
             //     .unwrap()
+        })
+        .sum::<usize>()
+}
+
+pub fn part2(input: &str) -> usize {
+    let parse = |x: &str| {
+        x.trim()
+            .split(' ')
+            .map(|x| x.bytes().collect::<ArrayVec<_, 8>>())
+            .update(|x| x.sort_unstable())
+            .collect::<ArrayVec<_, 10>>()
+    };
+
+    let refmap = SEGMENTS.iter().flat_map(|a| a.iter()).copied().counts();
+    let score_to_digit = SEGMENTS
+        .iter()
+        .enumerate()
+        .map(|(i, segment)| (segment.iter().map(|c| refmap[c] as u8).sum(), i as _))
+        .collect::<FMap<u8, u8>>();
+    // .update(|(left, _)| left.retain(|seq| UNIQUE_LENS.iter().all(|&l| seq.len() != l)));
+    input
+        .lines()
+        .map(|line| line.split_once('|').unwrap())
+        .map(|(left, right)| (parse(left), parse(right)))
+        .map(|(left, right)| {
+            let map = left.iter().flat_map(|a| a.iter()).copied().counts();
+            let seq_to_digit = left
+                .iter()
+                .map(|segment| (segment, segment.iter().map(|c| map[c] as u8).sum()))
+                .map(|(seg, score)| (seg, score_to_digit[&score]))
+                .collect::<FMap<_, _>>();
+
+            right
+                .iter()
+                .map(|code| scr[code] as usize)
+                .fold(0, |acc, x| acc * 10 + x)
         })
         .sum::<usize>()
 }
