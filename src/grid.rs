@@ -3,7 +3,7 @@ use std::iter::{FromIterator, TrustedLen};
 
 use itertools::{izip, Itertools};
 use ndarray::{azip, Array2, ArrayBase};
-use num::Zero;
+use num::{Num, Zero};
 use rayon::collections::binary_heap::IntoIter;
 use rayon::iter::FromParallelIterator;
 
@@ -56,11 +56,13 @@ impl<T> Grid2D<T> {
             .map(|((x, y), z)| ((x.try_into().unwrap(), y.try_into().unwrap()), z))
     }
 }
-pub fn adj_neighbours((x, y): (usize, usize)) -> impl Iterator<Item = (usize, usize)> {
-    let a = x.checked_add(1).map(|x| (x, y));
-    let b = x.checked_sub(1).map(|x| (x, y));
-    let d = y.checked_sub(1).map(|y| (x, y));
-    let c = y.checked_add(1).map(|y| (x, y));
+pub fn adj_neighbours<T: num_traits::CheckedSub + num_traits::CheckedAdd + Num + Copy>(
+    (x, y): (T, T),
+) -> impl Iterator<Item = (T, T)> {
+    let a = x.checked_add(&T::one()).map(|x| (x, y));
+    let b = x.checked_sub(&T::one()).map(|x| (x, y));
+    let d = y.checked_sub(&T::one()).map(|y| (x, y));
+    let c = y.checked_add(&T::one()).map(|y| (x, y));
 
     [a, b, c, d].into_iter().flatten()
 }

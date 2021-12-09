@@ -4,44 +4,49 @@ use crate::{
     utils::*,
 };
 
-fn parse(input: &str) -> grid::Grid2D<u8> {
+type MapGrid2D<T> = FMap<(u8, u8), T>;
+// type Grid = Grid2D<u8>;
+type Grid = MapGrid2D<u8>;
+
+fn parse(input: &str) -> Grid {
     input
         .lines()
         .enumerate()
         .flat_map(|(r, line)| {
             line.bytes()
                 .enumerate()
-                .map(move |(c, cha)| ((r, c), cha - b'0'))
+                .map(move |(c, cha)| ((r as _, c as _), cha - b'0'))
         })
         // .collect::<FMap<(usize, usize), _>>();
-        .collect::<Grid2D<_>>()
+        .collect::<Grid>()
 }
 
-fn minima(map: &Grid2D<u8>) -> impl Iterator<Item = ((usize, usize), &u8)> {
-    map.iter().filter(|&((r, c), &num)| {
-        let a = map.get(&(r + 1, c)).copied().unwrap_or(10);
-        let b = r
-            .checked_sub(1)
-            .and_then(|r| map.get(&(r, c)))
-            .copied()
-            .unwrap_or(10);
-        let d = c
-            .checked_sub(1)
-            .and_then(|c| map.get(&(r, c)))
-            .copied()
-            .unwrap_or(10);
-        let c = map.get(&(r, c + 1)).copied().unwrap_or(10);
+fn minima(map: &Grid) -> impl Iterator<Item = ((usize, usize), u8)> + '_ {
+    map.iter()
+        .map(|(&(r, c), &num)| ((r, c), num))
+        .filter(|&((r, c), num)| {
+            let a = map.get(&(r + 1, c)).copied().unwrap_or(10);
+            let b = r
+                .checked_sub(1)
+                .and_then(|r| map.get(&(r, c)))
+                .copied()
+                .unwrap_or(10);
+            let d = c
+                .checked_sub(1)
+                .and_then(|c| map.get(&(r, c)))
+                .copied()
+                .unwrap_or(10);
+            let c = map.get(&(r, c + 1)).copied().unwrap_or(10);
 
-        (num < a) && (num < b) && (num < c) && (num < d)
-    })
+            (num < a) && (num < b) && (num < c) && (num < d)
+        })
+        .map(|((r, c), num)| ((r as _, c as _), num))
 }
 
 pub fn part1(input: &str) -> usize {
     let map = parse(input);
 
-    minima(&map)
-        .map(|(_, &num)| 1 + num as usize)
-        .sum::<usize>()
+    minima(&map).map(|(_, num)| 1 + num as usize).sum::<usize>()
 }
 
 pub fn part2(input: &str) -> usize {
@@ -52,11 +57,9 @@ pub fn part2(input: &str) -> usize {
     points
         .into_iter()
         .map(|((row, col), _)| {
-            BFSearcher::<(usize, usize), FSet<(usize, usize)>, _>::new(
-                (row, col),
-                |p: &(usize, usize)| {
-                    adj_neighbours(*p).filter(|p| map.get(p).map_or(false, |&h| h != 9))
-                },
+            BFSearcher::<(u8, u8), FSet<(u8, u8)>, _>::new(
+                (row as u8, col as u8),
+                |p: &(u8, u8)| adj_neighbours(*p).filter(|p| map.get(p).map_or(false, |&h| h != 9)),
             )
             .check()
             .count()
