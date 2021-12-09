@@ -23,6 +23,7 @@ nalgebra = "0.25.3"
 smallvec = "1.6.1"
 lexical = "6.0.1"
 num-complex = "0.4.0"
+lazysort = "0.2.1"
 
 [dependencies.ndarray]
 version = "0.14.0"

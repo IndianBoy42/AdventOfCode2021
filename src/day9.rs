@@ -1,8 +1,9 @@
 use crate::{
     grid::{self, adj_neighbours, Grid2D},
-    searcher::BFSearcher,
+    searcher::{BFSearcher, DFSearcher},
     utils::*,
 };
+use lazysort::SortedBy;
 
 type MapGrid2D<T> = FMap<(u8, u8), T>;
 type Grid = Grid2D<u8>;
@@ -53,22 +54,25 @@ pub fn part2(input: &str) -> usize {
 
     let points = minima(&map).collect_vec();
 
-    points
-        .into_iter()
-        .map(|((row, col), _)| {
-            BFSearcher::<(u8, u8), FSet<(u8, u8)>, _>::new(
-                (row as u8, col as u8),
-                |p: &(u8, u8)| {
-                    adj_neighbours(*p)
-                        .filter(|&(r, c)| map.get(&(r as _, c as _)).map_or(false, |&h| h != 9))
-                },
-            )
-            .check()
-            .count()
+    let points = points.into_par_iter().map(|((row, col), _)| {
+        DFSearcher::<(u8, u8), FSet<(u8, u8)>, _>::new((row as u8, col as u8), |p: &(u8, u8)| {
+            adj_neighbours(*p)
+                .filter(|&(r, c)| map.get(&(r as _, c as _)).map_or(false, |&h| h != 9))
         })
-        .sorted_by_key(|&visited| Reverse(visited))
-        .take(3)
-        .product()
+        .check()
+        .count()
+    });
+
+    if true {
+        let mut points: Vec<_> = points.collect();
+        points.sort_by(|a, b| b.cmp(a));
+        points[..3].iter().product()
+    } else {
+        // lazysort::SortedBy::sorted_by(points, |a, b| b.cmp(a))
+        //     .take(3)
+        //     .product()
+        unimplemented!()
+    }
 }
 
 #[test]
