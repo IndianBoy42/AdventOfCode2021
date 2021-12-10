@@ -12,6 +12,12 @@ macro_rules! bench_day {
         $c.bench_function(concat!("day", $i, "p2"), |b| {
             b.iter(|| $n::part2(black_box(input)))
         });
+        $c.bench_function(concat!("day", $i), |b| {
+            b.iter(|| {
+                $n::part2(black_box(input));
+                $n::part2(black_box(input))
+            })
+        });
         input
     }};
 }
