@@ -17,14 +17,8 @@ pub fn part1(input: &str) -> usize {
                     stack.push(pos);
                     None
                 } else if let Some(pos) = CLOSE.iter().position(|&b| b == sym) {
-                    if let Some(&top) = stack.last() {
-                        if pos == top {
-                            stack.pop();
-                            None
-                        } else {
-                            // Error
-                            Some(pos)
-                        }
+                    if let Some(top) = stack.pop() {
+                        (pos != top).then_some(pos)
                     } else {
                         // Error // Never happens in puzzle input
                         Some(pos)
@@ -44,33 +38,26 @@ pub fn part2(input: &str) -> usize {
         .filter_map(|line| {
             let mut stack = Vec::with_capacity(1024);
             line.bytes()
-                .any(|sym| {
+                .all(|sym| {
                     if let Some(pos) = OPEN.iter().position(|&b| b == sym) {
                         stack.push(pos);
-                        false
+                        true
                     } else if let Some(pos) = CLOSE.iter().position(|&b| b == sym) {
-                        if let Some(&top) = stack.last() {
-                            if pos == top {
-                                stack.pop();
-                                false
-                            } else {
-                                // Error
-                                true
-                            }
+                        if let Some(top) = stack.pop() {
+                            pos == top
                         } else {
                             // Error
-                            true
+                            false
                         }
                     } else {
                         unreachable!("Invalid Input")
                     }
                 })
-                .not()
                 .then_some(stack)
         })
         .map(|stack| {
             stack
-                .iter()
+                .into_iter()
                 .rev()
                 .fold(0, |score, close| score * 5 + close + 1)
         })
