@@ -40,8 +40,9 @@ pub fn criterion_benchmark(crit: &mut Criterion) {
     let day7 = bench_day!(c, day7, 7);
     let day8 = bench_day!(c, day8, 8);
     let day9 = bench_day!(c, day9, 9);
+    let day10 = bench_day!(c, day10, 10);
     c.bench_function("alldays", |b| {
-        b.iter(|| bench_all_days!(day1, day2, day3, day4, day5, day6, day7, day8))
+        b.iter(|| bench_all_days!(day1, day2, day3, day4, day5, day6, day7, day8, day9, day10))
     });
 }
 
