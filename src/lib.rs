@@ -21,6 +21,7 @@
 #![feature(drain_filter)]
 #![feature(hash_drain_filter)]
 #![feature(trusted_len)]
+#![feature(stmt_expr_attributes)]
 // #![allow(unused_variables)]
 // #![allow(unused_imports)]
 
@@ -31,6 +32,7 @@ pub mod utils;
 
 pub mod day1;
 pub mod day10;
+pub mod day11;
 pub mod day2;
 pub mod day3;
 pub mod day4;

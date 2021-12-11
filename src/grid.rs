@@ -1,6 +1,7 @@
 use std::convert::TryInto;
 use std::iter::{FromIterator, TrustedLen};
 
+use arrayvec::ArrayVec;
 use itertools::{izip, Itertools};
 use ndarray::{azip, Array2, ArrayBase};
 use num::{Num, Zero};
@@ -62,6 +63,16 @@ impl<T> Grid2D<T> {
             .indexed_iter()
             .map(|((x, y), z)| ((x.try_into().unwrap(), y.try_into().unwrap()), z))
     }
+
+    pub fn iter_mut<I>(&mut self) -> impl Iterator<Item = ((I, I), &mut T)>
+    where
+        usize: TryInto<I>,
+        <usize as std::convert::TryInto<I>>::Error: std::fmt::Debug,
+    {
+        self.arr
+            .indexed_iter_mut()
+            .map(|((x, y), z)| ((x.try_into().unwrap(), y.try_into().unwrap()), z))
+    }
 }
 pub fn adj_neighbours<T: num_traits::CheckedSub + num_traits::CheckedAdd + Num + Copy>(
     (x, y): (T, T),
@@ -72,6 +83,28 @@ pub fn adj_neighbours<T: num_traits::CheckedSub + num_traits::CheckedAdd + Num +
     let c = y.checked_add(&T::one()).map(|y| (x, y));
 
     [a, b, c, d].into_iter().flatten()
+}
+pub fn all_neighbours<T>((x, y): (T, T)) -> arrayvec::ArrayVec<(T, T), 9_usize>
+where
+    T: Num + Copy + std::cmp::PartialOrd,
+{
+    let mut arr = ArrayVec::<_, 9>::new();
+    arr.push((x, y));
+    arr.push((x, y + T::one()));
+    arr.push((x + T::one(), y));
+    arr.push((x + T::one(), y + T::one()));
+    if x > T::zero() {
+        arr.push((x - T::one(), y));
+        arr.push((x - T::one(), y + T::one()));
+        if y > T::zero() {
+            arr.push((x - T::one(), y - T::one()));
+        }
+    }
+    if y > T::zero() {
+        arr.push((x, y - T::one()));
+        arr.push((x + T::one(), y - T::one()));
+    }
+    arr
 }
 
 // impl<Inner, T> FromIterator<Inner> for Grid2D<T>

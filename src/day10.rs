@@ -1,5 +1,3 @@
-use std::ops::Not;
-
 use crate::utils::*;
 
 const OPEN: [u8; 4] = [b'(', b'[', b'{', b'<'];

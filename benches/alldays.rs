@@ -47,8 +47,11 @@ pub fn criterion_benchmark(crit: &mut Criterion) {
     let day8 = bench_day!(c, day8, 8);
     let day9 = bench_day!(c, day9, 9);
     let day10 = bench_day!(c, day10, 10);
+    let day11 = bench_day!(c, day11, 11);
     c.bench_function("alldays", |b| {
-        b.iter(|| bench_all_days!(day1, day2, day3, day4, day5, day6, day7, day8, day9, day10))
+        b.iter(|| {
+            bench_all_days!(day1, day2, day3, day4, day5, day6, day7, day8, day9, day10, day11)
+        })
     });
 }
 
@@ -62,12 +65,12 @@ macro_rules! iai_day {
     };
 }
 
-iai_day!(bench_day1, day1, 1);
-iai_day!(bench_day2, day2, 2);
-iai_day!(bench_day3, day3, 3);
-iai_day!(bench_day4, day4, 4);
-iai_day!(bench_day5, day5, 5);
+// iai_day!(bench_day1, day1, 1);
+// iai_day!(bench_day2, day2, 2);
+// iai_day!(bench_day3, day3, 3);
+// iai_day!(bench_day4, day4, 4);
+// iai_day!(bench_day5, day5, 5);
+// iai::main!(bench_day1, bench_day2, bench_day3, bench_day4, bench_day5);
 
 criterion_group!(benches, criterion_benchmark);
-// iai::main!(bench_day1, bench_day2, bench_day3, bench_day4, bench_day5);
 criterion_main!(benches);
