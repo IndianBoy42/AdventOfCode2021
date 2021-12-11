@@ -1,5 +1,5 @@
 use crate::{
-    grid::{self, adj_neighbours, Grid2D},
+    grid::{self, adj_neighbours, adj_neighbours_if, Grid2D},
     searcher::{BFSearcher, DFSearcher},
     utils::*,
 };
@@ -59,8 +59,9 @@ pub fn part2(input: &str) -> usize {
             .filter(|&(_, num)| num != 9)
             .scan(
                 DFSearcher::<(u8, u8), FSet<(u8, u8)>, _>::new_empty(|p: &(u8, u8)| {
-                    adj_neighbours(*p)
-                        .filter(|&(r, c)| map.get(&(r as _, c as _)).map_or(false, |&h| h != 9))
+                    adj_neighbours_if(*p, |&(r, c)| {
+                        map.get(&(r as _, c as _)).map_or(false, |&h| h != 9)
+                    })
                 }),
                 |st, ((r, c), num)| {
                     if st.push((r, c)) {
@@ -94,8 +95,9 @@ pub fn part2(input: &str) -> usize {
                 map.len(),
                 (row as u8, col as u8),
                 |p: &(u8, u8)| {
-                    adj_neighbours(*p)
-                        .filter(|&(r, c)| map.get(&(r as _, c as _)).map_or(false, |&h| h != 9))
+                    adj_neighbours_if(*p, |&(r, c)| {
+                        map.get(&(r as _, c as _)).map_or(false, |&h| h != 9)
+                    })
                 },
             )
             .check()

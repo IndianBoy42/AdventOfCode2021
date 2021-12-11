@@ -74,6 +74,7 @@ impl<T> Grid2D<T> {
             .map(|((x, y), z)| ((x.try_into().unwrap(), y.try_into().unwrap()), z))
     }
 }
+
 pub fn adj_neighbours<T: num_traits::CheckedSub + num_traits::CheckedAdd + Num + Copy>(
     (x, y): (T, T),
 ) -> impl Iterator<Item = (T, T)> {
@@ -103,6 +104,46 @@ where
     if y > T::zero() {
         arr.push((x, y - T::one()));
         arr.push((x + T::one(), y - T::one()));
+    }
+    arr
+}
+pub fn adj_neighbours_if<T, F>((x, y): (T, T), f: F) -> impl Iterator<Item = (T, T)>
+where
+    T: num_traits::CheckedSub + num_traits::CheckedAdd + Num + Copy,
+    F: FnMut(&(T, T)) -> bool,
+{
+    let a = x.checked_add(&T::one()).map(|x| (x, y));
+    let b = x.checked_sub(&T::one()).map(|x| (x, y));
+    let d = y.checked_sub(&T::one()).map(|y| (x, y));
+    let c = y.checked_add(&T::one()).map(|y| (x, y));
+
+    [a, b, c, d].into_iter().flatten().filter(f)
+}
+pub fn all_neighbours_if<T, F>((x, y): (T, T), mut f: F) -> arrayvec::ArrayVec<(T, T), 9_usize>
+where
+    T: Num + Copy + std::cmp::PartialOrd,
+    F: FnMut(&(T, T)) -> bool,
+{
+    let mut arr = ArrayVec::<_, 9>::new();
+    let mut push = |p| {
+        if f(&p) {
+            arr.push(p);
+        }
+    };
+    push((x, y));
+    push((x, y + T::one()));
+    push((x + T::one(), y));
+    push((x + T::one(), y + T::one()));
+    if x > T::zero() {
+        push((x - T::one(), y));
+        push((x - T::one(), y + T::one()));
+        if y > T::zero() {
+            push((x - T::one(), y - T::one()));
+        }
+    }
+    if y > T::zero() {
+        push((x, y - T::one()));
+        push((x + T::one(), y - T::one()));
     }
     arr
 }

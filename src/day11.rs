@@ -1,6 +1,6 @@
 use crate::{
-    grid::{all_neighbours, Grid2D},
-    searcher::BFSearcher,
+    grid::{all_neighbours, all_neighbours_if, Grid2D},
+    searcher::{BFSearcher, DFSearcher},
     utils::*,
 };
 
@@ -15,27 +15,22 @@ fn sim(octopi: &mut Grid2D<u8>) -> usize {
         .filter(|(_, lvl)| **lvl > 9)
         .map(|(p, _)| p)
         .collect_vec();
-    let searcher = BFSearcher::<_, FSet<_>, _>::new_all(seeds, |&p: &(usize, usize)| {
-        all_neighbours(p)
-            .into_iter()
-            .filter(|p| {
-                if let Some(oc) = octopi.get_mut(p) {
-                    // *oc += 1;
-                    *oc += 1;
-                    *oc > 9
-                } else {
-                    false
-                }
-            })
-            .collect::<ArrayVec<_, 9>>()
+    DFSearcher::<_, FSet<_>, _>::new_all(seeds, |&p: &(usize, usize)| {
+        all_neighbours_if(p, |p| {
+            if let Some(oc) = octopi.get_mut(p) {
+                // *oc += 1;
+                *oc += 1;
+                *oc > 9
+            } else {
+                false
+            }
+        })
     })
     .check()
-    .collect_vec();
-
-    searcher
-        .into_iter()
-        .inspect(|p| *octopi.get_mut(p).unwrap() = 0)
-        .count()
+    .collect_vec()
+    .into_iter()
+    .inspect(|p| *octopi.get_mut(p).unwrap() = 0)
+    .count()
 }
 
 pub fn part1(input: &str) -> usize {
