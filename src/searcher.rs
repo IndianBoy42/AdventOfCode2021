@@ -88,6 +88,25 @@ where
     }
 }
 
+// impl<T, F> Visited<T> for F
+// where
+//     F: FnMut(T) -> bool,
+//     T: Clone,
+// {
+//     fn newset() -> Self {
+//         unreachable!()
+//     }
+//     fn newset_cap(cap: usize) -> Self {
+//         unreachable!()
+//     }
+//     fn mark(&mut self, e: T) -> bool {
+//         self(e)
+//     }
+//     fn check(&self, e: &T) -> bool {
+//         self(e.clone())
+//     }
+// }
+
 impl Visited<usize> for BitSet {
     fn newset() -> Self {
         Self::new()
@@ -182,7 +201,7 @@ where
         }
     }
 
-    /// Just to get a better error message for the type of NeighboursFn
+    /// Just to get a better error message for the type of `NeighboursFn`
     pub fn check<SearchIter>(self) -> Self
     where
         NeighboursFn: FnMut(&T) -> SearchIter,
