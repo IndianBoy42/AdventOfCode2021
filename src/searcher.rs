@@ -19,6 +19,7 @@ pub trait Visited<T> {
     fn newset_cap(cap: usize) -> Self;
     fn mark(&mut self, e: T) -> bool;
     fn check(&self, e: &T) -> bool;
+    fn len(&self) -> usize;
 }
 
 impl<T> SearchQueue<T> for BinaryHeap<Reverse<T>>
@@ -86,6 +87,10 @@ where
     fn check(&self, e: &T) -> bool {
         !self.contains(e)
     }
+
+    fn len(&self) -> usize {
+        self.len()
+    }
 }
 
 // impl<T, F> Visited<T> for F
@@ -119,6 +124,10 @@ impl Visited<usize> for BitSet {
     }
     fn check(&self, &e: &usize) -> bool {
         !self.contains(e)
+    }
+
+    fn len(&self) -> usize {
+        self.capacity()
     }
 }
 

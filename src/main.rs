@@ -46,5 +46,9 @@ macro_rules! run_all_days {
 // }
 fn main() {
     let input = read_input("test.txt").unwrap();
-    assert_eq!(aoc21::day12::part2(&input), 0);
+    assert_eq!(day15::part1(&input), 40);
+    assert_eq!(day15::part2(&input), 315);
+    let input = read_input("input15.txt").unwrap();
+    assert_eq!(day15::part1(&input), 755);
+    dbg!(aoc21::day15::part2(&input));
 }

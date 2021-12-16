@@ -16,6 +16,10 @@ pub struct Grid2D<T> {
 }
 
 impl<T: num_traits::Zero + Copy> Grid2D<T> {
+    pub fn new(arr: Array2<T>) -> Self {
+        Self { arr }
+    }
+
     pub fn from_iter_w_shape<I: IntoIterator<Item = T>>(shape: (usize, usize), iter: I) -> Self {
         let mut arr = Array2::zeros(shape);
         izip!(arr.iter_mut(), iter.into_iter()).for_each(|(out, elem)| {
@@ -54,6 +58,13 @@ impl<T> Grid2D<T> {
         self.arr.get_mut((x, y))
     }
 
+    pub fn shape(&self) -> (usize, usize) {
+        (self.arr.nrows(), self.arr.ncols())
+    }
+    pub fn check(&self, (x, y): (usize, usize)) -> bool {
+        y < self.arr.nrows() && x < self.arr.ncols()
+    }
+
     pub fn iter<I>(&self) -> impl Iterator<Item = ((I, I), &T)>
     where
         usize: TryInto<I>,
@@ -75,22 +86,26 @@ impl<T> Grid2D<T> {
     }
 }
 
-pub fn adj_neighbours<T: num_traits::CheckedSub + num_traits::CheckedAdd + Num + Copy>(
-    (x, y): (T, T),
-) -> impl Iterator<Item = (T, T)> {
-    let a = x.checked_add(&T::one()).map(|x| (x, y));
-    let b = x.checked_sub(&T::one()).map(|x| (x, y));
-    let d = y.checked_sub(&T::one()).map(|y| (x, y));
-    let c = y.checked_add(&T::one()).map(|y| (x, y));
-
-    [a, b, c, d].into_iter().flatten()
-}
-pub fn all_neighbours<T>((x, y): (T, T)) -> arrayvec::ArrayVec<(T, T), 9_usize>
+pub fn adj_neighbours<T>((x, y): (T, T)) -> ArrayVec<(T, T), 4_usize>
 where
     T: Num + Copy + std::cmp::PartialOrd,
 {
-    let mut arr = ArrayVec::<_, 9>::new();
-    arr.push((x, y));
+    let mut arr = ArrayVec::<_, 4>::new();
+    arr.push((x, y + T::one()));
+    arr.push((x + T::one(), y));
+    if x > T::zero() {
+        arr.push((x - T::one(), y));
+    }
+    if y > T::zero() {
+        arr.push((x, y - T::one()));
+    }
+    arr
+}
+pub fn all_neighbours<T>((x, y): (T, T)) -> arrayvec::ArrayVec<(T, T), 8_usize>
+where
+    T: Num + Copy + std::cmp::PartialOrd,
+{
+    let mut arr = ArrayVec::<_, 8>::new();
     arr.push((x, y + T::one()));
     arr.push((x + T::one(), y));
     arr.push((x + T::one(), y + T::one()));
@@ -107,30 +122,38 @@ where
     }
     arr
 }
-pub fn adj_neighbours_if<T, F>((x, y): (T, T), f: F) -> impl Iterator<Item = (T, T)>
-where
-    T: num_traits::CheckedSub + num_traits::CheckedAdd + Num + Copy,
-    F: FnMut(&(T, T)) -> bool,
-{
-    let a = x.checked_add(&T::one()).map(|x| (x, y));
-    let b = x.checked_sub(&T::one()).map(|x| (x, y));
-    let d = y.checked_sub(&T::one()).map(|y| (x, y));
-    let c = y.checked_add(&T::one()).map(|y| (x, y));
-
-    [a, b, c, d].into_iter().flatten().filter(f)
-}
-pub fn all_neighbours_if<T, F>((x, y): (T, T), mut f: F) -> arrayvec::ArrayVec<(T, T), 9_usize>
+pub fn adj_neighbours_if<T, F>((x, y): (T, T), mut f: F) -> ArrayVec<(T, T), 4_usize>
 where
     T: Num + Copy + std::cmp::PartialOrd,
     F: FnMut(&(T, T)) -> bool,
 {
-    let mut arr = ArrayVec::<_, 9>::new();
+    let mut arr = ArrayVec::<_, 4>::new();
     let mut push = |p| {
         if f(&p) {
             arr.push(p);
         }
     };
-    push((x, y));
+    push((x, y + T::one()));
+    push((x + T::one(), y));
+    if x > T::zero() {
+        push((x - T::one(), y));
+    }
+    if y > T::zero() {
+        push((x, y - T::one()));
+    }
+    arr
+}
+pub fn all_neighbours_if<T, F>((x, y): (T, T), mut f: F) -> arrayvec::ArrayVec<(T, T), 8_usize>
+where
+    T: Num + Copy + std::cmp::PartialOrd,
+    F: FnMut(&(T, T)) -> bool,
+{
+    let mut arr = ArrayVec::<_, 8>::new();
+    let mut push = |p| {
+        if f(&p) {
+            arr.push(p);
+        }
+    };
     push((x, y + T::one()));
     push((x + T::one(), y));
     push((x + T::one(), y + T::one()));

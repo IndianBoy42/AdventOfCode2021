@@ -51,11 +51,14 @@ pub fn criterion_benchmark(crit: &mut Criterion) {
     let day12 = bench_day!(c, day12, 12);
     let day13 = bench_day!(c, day13, 13);
     let day14 = bench_day!(c, day14, 14);
+    let day14 = bench_day!(c, day14, 14);
+    let day15 = bench_day!(c, day15, 15);
+    let day16 = bench_day!(c, day16, 16);
     c.bench_function("alldays", |b| {
         b.iter(|| {
             bench_all_days!(
                 day1, day2, day3, day4, day5, day6, day7, day8, day9, day10, day11, day12, day13,
-                day14
+                day14, day15, day16
             )
         })
     });
